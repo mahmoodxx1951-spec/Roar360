@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ROAR360 — Forge Your Legend</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --gold:#c9a84c;
+  --gold2:#f0d080;
+  --crimson:#8b0000;
+  --deep:#0a0305;
+  --dark:#120810;
+  --surface:#1a1020;
+  --surface2:#221530;
+  --platinum:#e8e0f0;
+  --silver:#b0a8c0;
+  --accent:#ff2d55;
+  --glow:rgba(201,168,76,0.4);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--deep);color:var(--platinum);font-family:'Rajdhani',sans-serif;overflow-x:hidden;cursor:none;}
+
+/* CUSTOM CURSOR */
+.cursor{position:fixed;width:12px;height:12px;background:var(--gold);border-radius:50%;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);transition:transform .1s;mix-blend-mode:difference;}
+.cursor-ring{position:fixed;width:40px;height:40px;border:1px solid var(--gold);border-radius:50%;pointer-events:none;z-index:99998;transform:translate(-50%,-50%);transition:all .15s ease;opacity:0.6;}
+
+/* NOISE OVERLAY */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9998;opacity:0.4;}
+
+/* NAVBAR */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;justify-content:space-between;align-items:center;padding:20px 60px;background:linear-gradient(180deg,rgba(10,3,5,0.95) 0%,transparent 100%);transition:all 0.4s;}
+nav.scrolled{background:rgba(10,3,5,0.97);border-bottom:1px solid rgba(201,168,76,0.2);backdrop-filter:blur(20px);}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:4px;background:linear-gradient(135deg,var(--gold),var(--gold2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-links{display:flex;gap:40px;list-style:none;}
+.nav-links a{color:var(--silver);text-decoration:none;font-size:.85rem;letter-spacing:3px;text-transform:uppercase;transition:color .3s;position:relative;}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--gold);transition:width .3s;}
+.nav-links a:hover{color:var(--gold);}
+.nav-links a:hover::after{width:100%;}
+.nav-cta{background:linear-gradient(135deg,var(--gold),var(--crimson));color:#fff;border:none;padding:12px 30px;font-family:'Rajdhani',sans-serif;font-size:.85rem;letter-spacing:3px;text-transform:uppercase;cursor:none;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:all .3s;}
+.nav-cta:hover{box-shadow:0 0 30px var(--glow);transform:translateY(-2px);}
+
+/* HERO — 3D CANVAS */
+#hero{position:relative;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+#hero-canvas{position:absolute;inset:0;width:100%;height:100%;}
+.hero-content{position:relative;z-index:10;text-align:center;padding:0 20px;}
+.hero-eyebrow{font-size:.75rem;letter-spacing:8px;text-transform:uppercase;color:var(--gold);margin-bottom:20px;opacity:0;animation:fadeUp .8s .4s forwards;}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(5rem,14vw,14rem);line-height:.85;letter-spacing:-2px;opacity:0;animation:fadeUp .8s .6s forwards;}
+.hero-title span{display:block;}
+.hero-title .line1{background:linear-gradient(135deg,#fff,var(--platinum));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero-title .line2{background:linear-gradient(135deg,var(--gold),var(--gold2),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none;filter:drop-shadow(0 0 40px var(--glow));}
+.hero-subtitle{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.3rem;color:var(--silver);margin:20px 0 40px;letter-spacing:2px;opacity:0;animation:fadeUp .8s .8s forwards;}
+.hero-btns{display:flex;gap:20px;justify-content:center;opacity:0;animation:fadeUp .8s 1s forwards;}
+.btn-primary{background:linear-gradient(135deg,var(--gold),#8b6914);color:var(--deep);padding:16px 40px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.9rem;letter-spacing:4px;text-transform:uppercase;border:none;cursor:none;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);transition:all .3s;text-decoration:none;}
+.btn-primary:hover{box-shadow:0 0 50px var(--glow);transform:translateY(-3px);}
+.btn-outline{background:transparent;color:var(--gold);padding:16px 40px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.9rem;letter-spacing:4px;text-transform:uppercase;border:1px solid var(--gold);cursor:none;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);transition:all .3s;text-decoration:none;}
+.btn-outline:hover{background:rgba(201,168,76,0.1);box-shadow:0 0 30px rgba(201,168,76,0.3);}
+.hero-scroll{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;opacity:0;animation:fadeUp .8s 1.4s forwards;}
+.hero-scroll span{font-size:.65rem;letter-spacing:4px;text-transform:uppercase;color:var(--silver);}
+.scroll-line{width:1px;height:60px;background:linear-gradient(180deg,var(--gold),transparent);animation:scrollLine 2s infinite;}
+@keyframes scrollLine{0%{transform:scaleY(0);transform-origin:top;}50%{transform:scaleY(1);transform-origin:top;}51%{transform-origin:bottom;}100%{transform:scaleY(0);transform-origin:bottom;}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+
+/* STATS STRIP */
+.stats-strip{background:linear-gradient(135deg,var(--crimson),#3d0000,var(--surface));border-top:1px solid rgba(201,168,76,0.3);border-bottom:1px solid rgba(201,168,76,0.3);padding:30px 0;overflow:hidden;}
+.stats-inner{display:flex;justify-content:space-around;align-items:center;max-width:1200px;margin:0 auto;padding:0 60px;}
+.stat{text-align:center;}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:3.5rem;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
+.stat-label{font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:var(--silver);margin-top:4px;}
+.stat-div{width:1px;height:60px;background:linear-gradient(180deg,transparent,var(--gold),transparent);}
+
+/* PARALLAX SECTIONS */
+.parallax-section{position:relative;overflow:hidden;}
+.parallax-bg{position:absolute;inset:-20%;background-attachment:fixed;background-size:cover;background-position:center;will-change:transform;}
+
+/* ABOUT SECTION */
+#about{padding:140px 0;position:relative;background:var(--dark);}
+#about::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.section-label{font-size:.65rem;letter-spacing:6px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,7vw,7rem);line-height:.9;margin-bottom:30px;}
+.section-title .accent{background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.about-grid{max-width:1200px;margin:0 auto;padding:0 60px;display:grid;grid-template-columns:1fr 1fr;gap:100px;align-items:center;}
+.about-text p{color:var(--silver);line-height:1.9;font-size:1.05rem;margin-bottom:20px;}
+.about-visual{position:relative;}
+.about-card{background:linear-gradient(135deg,var(--surface),var(--surface2));border:1px solid rgba(201,168,76,0.2);padding:40px;position:relative;overflow:hidden;}
+.about-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold),var(--crimson));}
+.about-card-title{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:3px;color:var(--gold);margin-bottom:12px;}
+.about-card p{color:var(--silver);font-size:.95rem;line-height:1.7;}
+.about-cards{display:flex;flex-direction:column;gap:20px;}
+.floating-badge{position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:linear-gradient(135deg,var(--gold),var(--crimson));clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:rotateSlow 10s linear infinite;}
+.floating-badge .num{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--deep);}
+.floating-badge .txt{font-size:.5rem;letter-spacing:2px;text-transform:uppercase;color:var(--deep);}
+@keyframes rotateSlow{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+
+/* SERVICES */
+#services{padding:140px 0;background:var(--deep);position:relative;}
+#services::before{content:'SERVICES';position:absolute;top:60px;left:50%;transform:translateX(-50%);font-family:'Bebas Neue',sans-serif;font-size:20vw;color:rgba(201,168,76,0.03);white-space:nowrap;pointer-events:none;}
+.services-header{text-align:center;max-width:700px;margin:0 auto 80px;padding:0 30px;}
+.services-grid{max-width:1300px;margin:0 auto;padding:0 40px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:2px;}
+.service-card{background:var(--surface);padding:40px 30px;position:relative;overflow:hidden;transition:all .4s;cursor:none;group:true;}
+.service-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(139,0,0,0.08));opacity:0;transition:opacity .4s;}
+.service-card::after{content:'';position:absolute;bottom:0;left:0;width:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--crimson));transition:width .5s;}
+.service-card:hover{transform:translateY(-8px);box-shadow:0 30px 60px rgba(0,0,0,0.5);}
+.service-card:hover::before{opacity:1;}
+.service-card:hover::after{width:100%;}
+.service-icon{font-size:2.5rem;margin-bottom:20px;display:block;}
+.service-name{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;color:var(--platinum);margin-bottom:10px;}
+.service-desc{font-size:.85rem;color:var(--silver);line-height:1.6;}
+
+/* 3D FEATURE SECTION */
+#feature3d{height:100vh;position:relative;display:flex;align-items:center;overflow:hidden;}
+#feature-canvas{position:absolute;inset:0;}
+.feature-text{position:relative;z-index:10;max-width:600px;margin-left:10%;}
+.feature-text .section-label{color:var(--gold);}
+.feature-text .section-title{color:#fff;}
+.feature-text p{color:var(--silver);font-size:1.1rem;line-height:1.8;margin-bottom:30px;}
+
+/* REVIEWS */
+#reviews{padding:140px 0;background:var(--dark);position:relative;overflow:hidden;}
+#reviews::before{content:'★ 4.8 ★';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Bebas Neue',sans-serif;font-size:25vw;color:rgba(201,168,76,0.025);white-space:nowrap;pointer-events:none;}
+.reviews-header{text-align:center;max-width:700px;margin:0 auto 60px;padding:0 30px;}
+.reviews-track{display:flex;gap:24px;overflow:hidden;padding:0 40px;}
+.reviews-inner{display:flex;gap:24px;animation:scrollReviews 40s linear infinite;width:max-content;}
+.reviews-inner:hover{animation-play-state:paused;}
+.review-card{background:linear-gradient(135deg,var(--surface),var(--surface2));border:1px solid rgba(201,168,76,0.15);padding:36px;width:340px;flex-shrink:0;position:relative;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));}
+.review-card::before{content:'"';position:absolute;top:10px;right:20px;font-family:'Cormorant Garamond',serif;font-size:6rem;color:rgba(201,168,76,0.1);line-height:1;}
+.review-stars{color:var(--gold);font-size:1rem;margin-bottom:14px;letter-spacing:2px;}
+.review-text{font-size:.9rem;color:var(--silver);line-height:1.7;margin-bottom:20px;}
+.review-author{font-family:'Bebas Neue',sans-serif;letter-spacing:2px;color:var(--gold);font-size:1rem;}
+.review-date{font-size:.7rem;color:rgba(176,168,192,0.5);letter-spacing:2px;margin-top:2px;}
+@keyframes scrollReviews{from{transform:translateX(0);}to{transform:translateX(-50%)}}
+
+/* HOURS + LOCATION */
+#info{padding:140px 0;background:var(--deep);}
+.info-grid{max-width:1200px;margin:0 auto;padding:0 60px;display:grid;grid-template-columns:1fr 1fr;gap:80px;}
+.info-card{background:linear-gradient(135deg,var(--surface),var(--surface2));border:1px solid rgba(201,168,76,0.2);padding:50px;}
+.info-card-title{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:4px;color:var(--gold);margin-bottom:30px;display:flex;align-items:center;gap:12px;}
+.hours-list{list-style:none;}
+.hours-list li{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(201,168,76,0.1);font-size:.9rem;}
+.hours-list li:last-child{border-bottom:none;}
+.hours-list .day{color:var(--silver);letter-spacing:2px;}
+.hours-list .time{color:var(--gold);font-weight:600;}
+.hours-list .open24{color:#4ade80;font-weight:600;}
+.address-text{color:var(--silver);line-height:1.9;font-size:1rem;margin-bottom:20px;}
+.contact-links{display:flex;flex-direction:column;gap:14px;margin-top:30px;}
+.contact-link{display:flex;align-items:center;gap:12px;color:var(--silver);text-decoration:none;font-size:.9rem;letter-spacing:1px;transition:color .3s;}
+.contact-link:hover{color:var(--gold);}
+.contact-link svg{width:20px;height:20px;fill:var(--gold);}
+
+/* MEMBERSHIP REMINDER AGENT */
+#reminder-section{padding:100px 0;background:linear-gradient(135deg,var(--surface),var(--dark));position:relative;}
+#reminder-section::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+#reminder-section::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.reminder-wrapper{max-width:900px;margin:0 auto;padding:0 40px;}
+.reminder-header{text-align:center;margin-bottom:50px;}
+.reminder-app{background:var(--deep);border:1px solid rgba(201,168,76,0.25);overflow:hidden;}
+.reminder-tabs{display:flex;border-bottom:1px solid rgba(201,168,76,0.2);}
+.rtab{flex:1;padding:16px;text-align:center;font-size:.75rem;letter-spacing:3px;text-transform:uppercase;cursor:pointer;color:var(--silver);transition:all .3s;border:none;background:transparent;}
+.rtab.active{color:var(--gold);background:rgba(201,168,76,0.05);border-bottom:2px solid var(--gold);}
+.reminder-body{padding:30px;}
+.members-form{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.field-group{display:flex;flex-direction:column;gap:6px;}
+.field-group label{font-size:.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--silver);}
+.field-group input,.field-group select{background:var(--surface);border:1px solid rgba(201,168,76,0.2);color:var(--platinum);padding:12px 16px;font-family:'Rajdhani',sans-serif;font-size:.9rem;outline:none;transition:border .3s;}
+.field-group input:focus,.field-group select:focus{border-color:var(--gold);}
+.field-group select option{background:var(--surface);}
+.full-width{grid-column:span 2;}
+.add-btn{background:linear-gradient(135deg,var(--gold),#8b6914);color:var(--deep);border:none;padding:14px 30px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.85rem;letter-spacing:3px;text-transform:uppercase;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:all .3s;width:100%;}
+.add-btn:hover{box-shadow:0 0 30px var(--glow);}
+.members-table{width:100%;border-collapse:collapse;}
+.members-table th{text-align:left;font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--gold);padding:10px 16px;border-bottom:1px solid rgba(201,168,76,0.2);}
+.members-table td{padding:12px 16px;font-size:.85rem;color:var(--silver);border-bottom:1px solid rgba(255,255,255,0.04);}
+.members-table tr:hover td{background:rgba(201,168,76,0.03);color:var(--platinum);}
+.badge-ok{background:rgba(74,222,128,0.15);color:#4ade80;padding:3px 10px;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;}
+.badge-warn{background:rgba(251,191,36,0.15);color:#fbbf24;padding:3px 10px;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;animation:pulse 1.5s infinite;}
+.badge-exp{background:rgba(255,45,85,0.15);color:#ff2d55;padding:3px 10px;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+.alert-banner{background:linear-gradient(135deg,rgba(139,0,0,0.3),rgba(201,168,76,0.1));border:1px solid rgba(255,45,85,0.3);padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;font-size:.85rem;color:var(--platinum);}
+.alert-icon{font-size:1.2rem;}
+.notify-btn{margin-left:auto;background:var(--accent);color:#fff;border:none;padding:8px 16px;font-family:'Rajdhani',sans-serif;font-size:.7rem;letter-spacing:2px;cursor:pointer;text-transform:uppercase;}
+.no-alerts{text-align:center;padding:40px;color:var(--silver);font-style:italic;font-family:'Cormorant Garamond',serif;font-size:1.2rem;}
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* SOCIAL / FOOTER */
+footer{background:var(--deep);border-top:1px solid rgba(201,168,76,0.15);padding:80px 60px 40px;}
+.footer-inner{max-width:1200px;margin:0 auto;}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:60px;margin-bottom:60px;}
+.footer-brand{font-family:'Bebas Neue',sans-serif;font-size:3rem;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px;}
+.footer-tagline{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--silver);font-size:1.1rem;margin-bottom:24px;}
+.social-links{display:flex;gap:16px;}
+.social-link{width:44px;height:44px;border:1px solid rgba(201,168,76,0.3);display:flex;align-items:center;justify-content:center;color:var(--gold);text-decoration:none;font-size:1rem;transition:all .3s;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);}
+.social-link:hover{background:rgba(201,168,76,0.15);box-shadow:0 0 20px var(--glow);}
+.footer-col-title{font-family:'Bebas Neue',sans-serif;letter-spacing:3px;color:var(--gold);font-size:1.1rem;margin-bottom:20px;}
+.footer-links{list-style:none;display:flex;flex-direction:column;gap:10px;}
+.footer-links a{color:var(--silver);text-decoration:none;font-size:.85rem;letter-spacing:1px;transition:color .3s;}
+.footer-links a:hover{color:var(--gold);}
+.footer-bottom{border-top:1px solid rgba(201,168,76,0.1);padding-top:30px;display:flex;justify-content:space-between;align-items:center;}
+.footer-copy{font-size:.75rem;color:rgba(176,168,192,0.5);letter-spacing:2px;}
+
+/* WHATSAPP FLOAT */
+.wa-float{position:fixed;bottom:30px;right:30px;z-index:9000;display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+.wa-btn{width:60px;height:60px;background:linear-gradient(135deg,#25d366,#128c7e);border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 30px rgba(37,211,102,0.4);animation:waPulse 2.5s infinite;transition:all .3s;}
+.wa-btn:hover{transform:scale(1.1);box-shadow:0 4px 40px rgba(37,211,102,0.6);}
+.wa-btn svg{width:32px;height:32px;fill:#fff;}
+.wa-tooltip{background:rgba(10,3,5,0.95);border:1px solid rgba(37,211,102,0.3);color:#fff;padding:8px 16px;font-size:.8rem;letter-spacing:1px;white-space:nowrap;opacity:0;transform:translateX(10px);transition:all .3s;pointer-events:none;}
+.wa-float:hover .wa-tooltip{opacity:1;transform:translateX(0);}
+@keyframes waPulse{0%,100%{box-shadow:0 4px 30px rgba(37,211,102,0.4),0 0 0 0 rgba(37,211,102,0.4);}50%{box-shadow:0 4px 30px rgba(37,211,102,0.4),0 0 0 15px rgba(37,211,102,0);}}
+
+/* SCROLL REVEAL */
+.reveal{opacity:0;transform:translateY(50px);transition:opacity .8s ease,transform .8s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.reveal-left{opacity:0;transform:translateX(-60px);transition:opacity .8s ease,transform .8s ease;}
+.reveal-left.visible{opacity:1;transform:translateX(0);}
+.reveal-right{opacity:0;transform:translateX(60px);transition:opacity .8s ease,transform .8s ease;}
+.reveal-right.visible{opacity:1;transform:translateX(0);}
+
+/* GOLD DIVIDER */
+.gold-divider{text-align:center;padding:20px 0;}
+.gold-divider span{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--gold);letter-spacing:8px;opacity:0.5;}
+
+/* MEDIA */
+@media(max-width:768px){
+  nav{padding:16px 24px;}
+  .nav-links{display:none;}
+  .about-grid,.info-grid,.footer-grid{grid-template-columns:1fr;gap:40px;}
+  .about-grid{padding:0 24px;}
+  .info-grid{padding:0 24px;}
+  .members-form{grid-template-columns:1fr;}
+  .full-width{grid-column:span 1;}
+  .stats-inner{flex-wrap:wrap;gap:20px;}
+  .stat-div{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-logo">ROAR360</div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#reviews">Reviews</a></li>
+    <li><a href="#info">Visit</a></li>
+    <li><a href="#reminder-section">Members</a></li>
+  </ul>
+  <button class="nav-cta" onclick="document.getElementById('info').scrollIntoView({behavior:'smooth'})">Join Now</button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Hyderabad's Premier Fitness Destination</p>
+    <h1 class="hero-title">
+      <span class="line1">FORGE YOUR</span>
+      <span class="line2">LEGEND</span>
+    </h1>
+    <p class="hero-subtitle">Where Champions Are Sculpted — Shivarampally, Telangana</p>
+    <div class="hero-btns">
+      <a href="#services" class="btn-primary">Explore Club</a>
+      <a href="#reminder-section" class="btn-outline">Member Portal</a>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-strip reveal">
+  <div class="stats-inner">
+    <div class="stat"><div class="stat-num" data-target="435">0</div><div class="stat-label">Verified Reviews</div></div>
+    <div class="stat-div"></div>
+    <div class="stat"><div class="stat-num">4.8</div><div class="stat-label">Star Rating</div></div>
+    <div class="stat-div"></div>
+    <div class="stat"><div class="stat-num" data-target="6">0</div><div class="stat-label">Years of Excellence</div></div>
+    <div class="stat-div"></div>
+    <div class="stat"><div class="stat-num" data-target="17">0</div><div class="stat-label">Services Offered</div></div>
+    <div class="stat-div"></div>
+    <div class="stat"><div class="stat-num">24/7</div><div class="stat-label">Access (Weekdays)</div></div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about" class="parallax-section">
+  <div class="about-grid">
+    <div class="about-text reveal-left">
+      <p class="section-label">Our Story</p>
+      <h2 class="section-title">THE ART OF <span class="accent">TRANSFORMATION</span></h2>
+      <p>Roar360 Fitness Club is not just a gym — it's a movement. Located in the heart of Shivarampally, Hyderabad, we have been sculpting champions for over 6 years, earning a rare 4.8-star rating from 435+ members who chose to rise above.</p>
+      <p>Our unisex facility blends luxury aesthetics with raw performance infrastructure. State-of-the-art equipment, certified trainers, dedicated women's hours, steam bath, and nutrition consulting — everything elite fitness demands.</p>
+      <p>Whether you're beginning your journey or chasing the next level, Roar360 is where potential becomes power.</p>
+      <a href="#services" class="btn-primary" style="display:inline-block;margin-top:20px;">Explore Services</a>
+    </div>
+    <div class="about-visual reveal-right">
+      <div class="about-cards">
+        <div class="about-card" style="position:relative;">
+          <div class="floating-badge"><span class="num">4.8</span><span class="txt">Stars</span></div>
+          <div class="about-card-title">🏆 Premium Equipment</div>
+          <p>Every machine, every weight, every cable — sourced for performance and longevity. Modern strength and cardio gear for all levels.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-card-title">👩 Women-Inclusive</div>
+          <p>Dedicated women-only hours in a safe, welcoming unisex environment. Comfort and confidence, every session.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-card-title">🧬 Expert Trainers</div>
+          <p>Certified, passionate coaches who design personalized programs and keep you accountable to your goals.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3D FEATURE CANVAS -->
+<section id="feature3d">
+  <canvas id="feature-canvas"></canvas>
+  <div class="feature-text reveal-left">
+    <p class="section-label">The Roar360 Difference</p>
+    <h2 class="section-title" style="font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,6vw,6rem);line-height:.9;">BUILT FOR <span class="accent" style="background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">WARRIORS</span></h2>
+    <p>From blood pressure testing to advanced body composition analysis for members 35–40+, we take a medical-grade approach to fitness. Steam bath, locker facilities, nutrition consulting — this is a complete wellness ecosystem.</p>
+    <a href="https://wa.me/917337441740" target="_blank" class="btn-primary" style="display:inline-block;">Book Free Trial</a>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="services-header reveal">
+    <p class="section-label">What We Offer</p>
+    <h2 class="section-title">OUR <span class="accent">SERVICES</span></h2>
+    <p style="color:var(--silver);font-size:1rem;line-height:1.7;margin-top:16px;">A complete arsenal of fitness tools and expert guidance for every goal.</p>
+  </div>
+  <div class="services-grid reveal">
+    <div class="service-card"><span class="service-icon">🏋️</span><div class="service-name">Weight Training</div><p class="service-desc">Progressive overload programs for strength, size, and athletic performance.</p></div>
+    <div class="service-card"><span class="service-icon">🏃</span><div class="service-name">Cardio & CrossFit</div><p class="service-desc">High-energy cardio circuits and CrossFit-inspired metabolic conditioning.</p></div>
+    <div class="service-card"><span class="service-icon">💃</span><div class="service-name">Zumba Classes</div><p class="service-desc">Fun, dance-based fitness that burns calories and builds coordination.</p></div>
+    <div class="service-card"><span class="service-icon">👤</span><div class="service-name">Personal Training</div><p class="service-desc">One-on-one coaching with certified professionals tailored to your goals.</p></div>
+    <div class="service-card"><span class="service-icon">🥗</span><div class="service-name">Nutrition Consulting</div><p class="service-desc">Expert diet planning and nutritional guidance for optimal results.</p></div>
+    <div class="service-card"><span class="service-icon">💪</span><div class="service-name">Muscle Building</div><p class="service-desc">Scientifically structured hypertrophy and muscle mass programs.</p></div>
+    <div class="service-card"><span class="service-icon">⚖️</span><div class="service-name">Weight Management</div><p class="service-desc">Comprehensive weight loss and weight gain protocols with expert support.</p></div>
+    <div class="service-card"><span class="service-icon">🧬</span><div class="service-name">Fitness Testing</div><p class="service-desc">Body composition analysis and fitness benchmarking for all ages.</p></div>
+    <div class="service-card"><span class="service-icon">❤️</span><div class="service-name">Health Monitoring</div><p class="service-desc">Blood pressure & heart rate testing to train smart and stay safe.</p></div>
+    <div class="service-card"><span class="service-icon">🧖</span><div class="service-name">Steam Bath</div><p class="service-desc">Luxury steam bath for post-workout recovery and relaxation.</p></div>
+    <div class="service-card"><span class="service-icon">🔐</span><div class="service-name">Locker Facility</div><p class="service-desc">Secure personal lockers for your belongings every session.</p></div>
+    <div class="service-card"><span class="service-icon">🎓</span><div class="service-name">Certified Trainers</div><p class="service-desc">Every trainer is certified, experienced, and dedicated to your journey.</p></div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section id="reviews">
+  <div class="reviews-header reveal">
+    <p class="section-label">Member Voices</p>
+    <h2 class="section-title">REAL <span class="accent">RESULTS</span></h2>
+    <p style="color:var(--silver);margin-top:16px;">⭐⭐⭐⭐⭐ 4.8 Stars · 435+ Reviews on Google</p>
+  </div>
+  <div class="reviews-track">
+    <div class="reviews-inner" id="reviewsInner"></div>
+  </div>
+</section>
+
+<!-- INFO -->
+<section id="info">
+  <div class="info-grid reveal">
+    <div class="info-card">
+      <div class="info-card-title">🕐 Hours</div>
+      <ul class="hours-list">
+        <li><span class="day">Monday</span><span class="open24">Open 24 Hours</span></li>
+        <li><span class="day">Tuesday</span><span class="open24">Open 24 Hours</span></li>
+        <li><span class="day">Wednesday</span><span class="open24">Open 24 Hours</span></li>
+        <li><span class="day">Thursday</span><span class="open24">Open 24 Hours</span></li>
+        <li><span class="day">Friday</span><span class="open24">Open 24 Hours</span></li>
+        <li><span class="day">Saturday</span><span class="open24">Open 24 Hours</span></li>
+        <li><span class="day">Sunday</span><span class="time">5:00 PM – 10:00 PM</span></li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <div class="info-card-title">📍 Location</div>
+      <p class="address-text">4th Floor, NH 44, Above Canara Bank,<br>Opp. National Police Academy,<br>Raghavendra Nagar, Shivarampally Jagir,<br>Telangana 500052</p>
+      <div class="contact-links">
+        <a href="tel:+917337441740" class="contact-link">
+          <svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+          +91 73374 41740
+        </a>
+        <a href="https://wa.me/917337441740" target="_blank" class="contact-link">
+          <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp Us
+        </a>
+        <a href="https://www.instagram.com/roar360fitnessclub/" target="_blank" class="contact-link">
+          <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          @roar360fitnessclub
+        </a>
+        <a href="https://www.facebook.com/Roar360fitnessclub/" target="_blank" class="contact-link">
+          <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          Facebook Page
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MEMBERSHIP REMINDER AGENT -->
+<section id="reminder-section">
+  <div class="reminder-wrapper">
+    <div class="reminder-header reveal">
+      <p class="section-label">Smart Member Management</p>
+      <h2 class="section-title">MEMBERSHIP <span class="accent">REMINDER AGENT</span></h2>
+      <p style="color:var(--silver);font-size:1rem;margin-top:16px;">Automatically alerts owners and members when subscriptions expire within 3 days.</p>
+    </div>
+    <div class="reminder-app reveal">
+      <div class="reminder-tabs">
+        <button class="rtab active" onclick="switchTab('add')">➕ Add Member</button>
+        <button class="rtab" onclick="switchTab('members')">👥 Members</button>
+        <button class="rtab" onclick="switchTab('alerts')">🔔 Alerts</button>
+      </div>
+      <div class="reminder-body">
+
+        <!-- ADD PANEL -->
+        <div class="panel active" id="panel-add">
+          <div class="members-form">
+            <div class="field-group"><label>Full Name</label><input type="text" id="m-name" placeholder="e.g. Priya Sharma"/></div>
+            <div class="field-group"><label>Phone / WhatsApp</label><input type="tel" id="m-phone" placeholder="+91 98765 43210"/></div>
+            <div class="field-group"><label>Plan</label>
+              <select id="m-plan">
+                <option value="Monthly">Monthly (30 days)</option>
+                <option value="Quarterly">Quarterly (90 days)</option>
+                <option value="Half-Yearly">Half-Yearly (180 days)</option>
+                <option value="Annual">Annual (365 days)</option>
+              </select>
+            </div>
+            <div class="field-group"><label>Join Date</label><input type="date" id="m-date"/></div>
+            <div class="field-group full-width"><label>Email (optional)</label><input type="email" id="m-email" placeholder="member@email.com"/></div>
+          </div>
+          <button class="add-btn" onclick="addMember()">⚡ Add Member to Roar360</button>
+        </div>
+
+        <!-- MEMBERS PANEL -->
+        <div class="panel" id="panel-members">
+          <div style="overflow-x:auto;">
+            <table class="members-table">
+              <thead><tr><th>Name</th><th>Phone</th><th>Plan</th><th>Expires</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="members-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ALERTS PANEL -->
+        <div class="panel" id="panel-alerts">
+          <div id="alerts-container"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">ROAR360</div>
+        <p class="footer-tagline">"Where Champions Are Forged"</p>
+        <p style="color:var(--silver);font-size:.85rem;line-height:1.7;margin-bottom:24px;">Hyderabad's most premium unisex fitness club, delivering transformations since 2019. Open 24 hours weekdays.</p>
+        <div class="social-links">
+          <a href="https://www.instagram.com/roar360fitnessclub/" target="_blank" class="social-link">IG</a>
+          <a href="https://www.facebook.com/Roar360fitnessclub/" target="_blank" class="social-link">FB</a>
+          <a href="https://wa.me/917337441740" target="_blank" class="social-link">WA</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Navigate</div>
+        <ul class="footer-links">
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#reviews">Reviews</a></li>
+          <li><a href="#info">Find Us</a></li>
+          <li><a href="#reminder-section">Member Portal</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Services</div>
+        <ul class="footer-links">
+          <li><a href="#">Personal Training</a></li>
+          <li><a href="#">Zumba Classes</a></li>
+          <li><a href="#">Nutrition Consulting</a></li>
+          <li><a href="#">Steam Bath</a></li>
+          <li><a href="#">Online Classes</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2025 ROAR360 FITNESS CLUB — SHIVARAMPALLY, HYDERABAD</p>
+      <p class="footer-copy">4th Floor, NH 44, Above Canara Bank · 073374 41740</p>
+    </div>
+  </div>
+</footer>
+
+<!-- WHATSAPP FLOAT -->
+<div class="wa-float">
+  <div class="wa-tooltip">Chat with us on WhatsApp</div>
+  <a href="https://wa.me/917337441740?text=Hi%20Roar360!%20I'm%20interested%20in%20joining." target="_blank" class="wa-btn">
+    <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  </a>
+</div>
+
+<script>
+// ==================== CUSTOM CURSOR ====================
+const cursor = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursorRing');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top = e.clientY + 'px';
+  setTimeout(() => {
+    cursorRing.style.left = e.clientX + 'px';
+    cursorRing.style.top = e.clientY + 'px';
+  }, 80);
+});
+document.querySelectorAll('a,button,.service-card,.review-card').forEach(el => {
+  el.addEventListener('mouseenter', () => { cursor.style.transform = 'translate(-50%,-50%) scale(2)'; cursorRing.style.transform = 'translate(-50%,-50%) scale(1.5)'; });
+  el.addEventListener('mouseleave', () => { cursor.style.transform = 'translate(-50%,-50%) scale(1)'; cursorRing.style.transform = 'translate(-50%,-50%) scale(1)'; });
+});
+
+// ==================== NAVBAR SCROLL ====================
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
+});
+
+// ==================== HERO 3D CANVAS ====================
+(function() {
+  const canvas = document.getElementById('hero-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [], mouseX = 0, mouseY = 0;
+  const GOLD = '#c9a84c', CRIMSON = '#8b0000', DARK = '#0a0305';
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Particle class
+  class Particle {
+    constructor() { this.reset(); }
+    reset() {
+      this.x = Math.random() * W;
+      this.y = Math.random() * H;
+      this.z = Math.random() * 1200 + 100;
+      this.vz = -(Math.random() * 3 + 1);
+      this.size = Math.random() * 2 + 0.5;
+      this.gold = Math.random() > 0.7;
+      this.alpha = Math.random() * 0.8 + 0.2;
+    }
+    update() {
+      this.z += this.vz;
+      if (this.z < 0) this.reset();
+      // Mouse parallax
+      const dx = (mouseX - W/2) / W * 0.5;
+      const dy = (mouseY - H/2) / H * 0.5;
+      this.x += dx;
+      this.y += dy;
+    }
+    draw() {
+      const scale = 800 / this.z;
+      const sx = (this.x - W/2) * scale + W/2;
+      const sy = (this.y - H/2) * scale + H/2;
+      const r = this.size * scale;
+      const alpha = (1 - this.z / 1300) * this.alpha;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, alpha);
+      ctx.fillStyle = this.gold ? GOLD : '#ffffff';
+      ctx.shadowBlur = this.gold ? 8 : 3;
+      ctx.shadowColor = this.gold ? GOLD : 'white';
+      ctx.beginPath();
+      ctx.arc(sx, sy, Math.max(0.2, r), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  for (let i = 0; i < 280; i++) particles.push(new Particle());
+
+  // Hexagonal grid (3D depth effect)
+  function drawHexGrid(t) {
+    const size = 60, rows = 12, cols = 18;
+    ctx.save();
+    for (let r = -2; r < rows; r++) {
+      for (let c = -2; c < cols; c++) {
+        const x = c * size * 1.73 + (r % 2) * size * 0.86;
+        const y = r * size * 1.5;
+        const depth = (Math.sin(t * 0.001 + r * 0.3 + c * 0.2) + 1) / 2;
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const angle = Math.PI / 180 * (60 * i - 30);
+          const px = x + size * 0.48 * Math.cos(angle);
+          const py = y + size * 0.48 * Math.sin(angle);
+          i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = `rgba(201,168,76,${depth * 0.07})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+        if (depth > 0.8) {
+          ctx.fillStyle = `rgba(201,168,76,${(depth - 0.8) * 0.04})`;
+          ctx.fill();
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  // 3D rotating ring
+  function drawRings(t) {
+    const cx = W / 2, cy = H / 2;
+    const rings = [
+      { r: 250, speed: 0.3, color: GOLD, dash: [4, 8] },
+      { r: 350, speed: -0.2, color: CRIMSON, dash: [2, 12] },
+      { r: 180, speed: 0.5, color: GOLD, dash: [1, 6] },
+    ];
+    rings.forEach(ring => {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(t * 0.001 * ring.speed);
+      ctx.scale(1, 0.3);
+      ctx.beginPath();
+      ctx.arc(0, 0, ring.r, 0, Math.PI * 2);
+      ctx.strokeStyle = ring.color;
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.25;
+      ctx.setLineDash(ring.dash);
+      ctx.stroke();
+      ctx.restore();
+    });
+  }
+
+  // Gradient vignette
+  function drawVignette() {
+    const grd = ctx.createRadialGradient(W/2, H/2, H*0.1, W/2, H/2, H*0.9);
+    grd.addColorStop(0, 'rgba(10,3,5,0)');
+    grd.addColorStop(0.5, 'rgba(10,3,5,0.3)');
+    grd.addColorStop(1, 'rgba(10,3,5,0.9)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  let t = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    t++;
+    ctx.fillStyle = DARK;
+    ctx.fillRect(0, 0, W, H);
+    drawHexGrid(t);
+    drawRings(t);
+    particles.forEach(p => { p.update(); p.draw(); });
+    drawVignette();
+  }
+  animate();
+
+  canvas.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+})();
+
+// ==================== FEATURE CANVAS ====================
+(function() {
+  const canvas = document.getElementById('feature-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+
+  const nodes = [];
+  for (let i = 0; i < 60; i++) {
+    nodes.push({ x: Math.random()*W, y: Math.random()*H, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5 });
+  }
+
+  let t = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    t++;
+    ctx.fillStyle = 'rgba(10,8,16,0.85)';
+    ctx.fillRect(0,0,W,H);
+    nodes.forEach(n => {
+      n.x += n.vx; n.y += n.vy;
+      if (n.x < 0 || n.x > W) n.vx *= -1;
+      if (n.y < 0 || n.y > H) n.vy *= -1;
+    });
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i+1; j < nodes.length; j++) {
+        const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        if (dist < 160) {
+          const alpha = (1 - dist/160) * 0.3;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.strokeStyle = `rgba(201,168,76,${alpha})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+      ctx.beginPath();
+      ctx.arc(nodes[i].x, nodes[i].y, 2, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(201,168,76,0.6)';
+      ctx.fill();
+    }
+
+    // Animated dumbbell shape in background
+    ctx.save();
+    ctx.translate(W*0.75, H*0.5);
+    ctx.rotate(t * 0.005);
+    ctx.globalAlpha = 0.06;
+    ctx.strokeStyle = '#c9a84c';
+    ctx.lineWidth = 20;
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-120,0); ctx.lineTo(120,0); ctx.stroke();
+    [[-120,0],[120,0]].forEach(([x,y]) => {
+      ctx.beginPath(); ctx.arc(x, y, 50, 0, Math.PI*2); ctx.stroke();
+    });
+    ctx.restore();
+  }
+  animate();
+})();
+
+// ==================== COUNTER ANIMATION ====================
+function animateCounter(el, target) {
+  let start = 0, dur = 2000, step = target / (dur / 16);
+  const t = setInterval(() => {
+    start = Math.min(start + step, target);
+    el.textContent = Math.floor(start) + (el.dataset.suffix || '');
+    if (start >= target) clearInterval(t);
+  }, 16);
+}
+
+// ==================== SCROLL REVEAL ====================
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      // counter
+      const nums = entry.target.querySelectorAll('[data-target]');
+      nums.forEach(el => animateCounter(el, +el.dataset.target));
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal,.reveal-left,.reveal-right,.stats-strip').forEach(el => observer.observe(el));
+
+// ==================== PARALLAX ====================
+window.addEventListener('scroll', () => {
+  const scrollY = window.scrollY;
+  document.querySelectorAll('.parallax-bg').forEach(el => {
+    el.style.transform = `translateY(${scrollY * 0.3}px)`;
+  });
+});
+
+// ==================== REVIEWS DATA ====================
+const reviewsData = [
+  { name:'Luke Nikki', stars:5, text:'Premium fitness experience with state-of-the-art equipment and elegant workout environment. Trainers are highly professional.', time:'2 months ago' },
+  { name:'Apoorva Maheshwari', stars:5, text:'The owner guides members personally. Exceptional management and a community that genuinely cares about your progress.', time:'7 months ago' },
+  { name:'Sree Lakshmi', stars:5, text:'Excellent gym — hygienic, spacious, and feels great to work out here. Knowledgeable and supportive trainers.', time:'3 months ago' },
+  { name:'PRAVALLIKA PRAVS', stars:5, text:'Joined with zero confidence, but my coach completely changed the game. Visible transformation in just a few weeks.', time:'3 months ago' },
+  { name:'Rizwaan Qureshi', stars:5, text:'Amazing place with friendly environment. The owner is very down-to-earth and co-operative.', time:'3 months ago' },
+  { name:'Fatima', stars:5, text:'Excellent gym — coach very supportive, professional and motivating. Seen great improvement in strength and fitness.', time:'3 months ago' },
+  { name:'Sanjana T', stars:5, text:'The atmosphere is energetic and welcoming. Equipment is top-notch, covering everything from cardio to heavy lifting.', time:'9 months ago' },
+  { name:'Ahmed Shareef', stars:5, text:'From the moment you step in, you\'re greeted with an atmosphere that\'s both energizing and welcoming.', time:'9 months ago' },
+  { name:'Humer Khan', stars:5, text:'Honestly one of the gyms with top equipment and amazing environment. Friendly staff, super clean and comfortable.', time:'1 year ago' },
+  { name:'Sheli Chatterjee', stars:5, text:'Solid, inclusive unisex gym experience. Spacious, well-maintained, with knowledgeable trainers for all levels.', time:'8 months ago' },
+  { name:'Rahmath Unissa', stars:5, text:'Budget-friendly gym with good motivation, time flexibility, top equipment, and a clean hygienic environment.', time:'4 months ago' },
+  { name:'MD Sumer', stars:5, text:'Amazing facility, top equipment, great environment. Affordable and comfortable for everyone from beginners to pros.', time:'8 months ago' },
+];
+
+const inner = document.getElementById('reviewsInner');
+// Duplicate for infinite scroll
+[...reviewsData, ...reviewsData].forEach(r => {
+  const card = document.createElement('div');
+  card.className = 'review-card';
+  card.innerHTML = `<div class="review-stars">${'★'.repeat(r.stars)}</div><p class="review-text">${r.text}</p><div class="review-author">${r.name}</div><div class="review-date">${r.time}</div>`;
+  inner.appendChild(card);
+});
+
+// ==================== MEMBERSHIP REMINDER AGENT ====================
+let members = JSON.parse(localStorage.getItem('r360members') || '[]');
+
+function saveMem() { localStorage.setItem('r360members', JSON.stringify(members)); }
+
+function planDays(plan) {
+  return { Monthly:30, Quarterly:90, 'Half-Yearly':180, Annual:365 }[plan] || 30;
+}
+
+function expiry(joinDate, plan) {
+  const d = new Date(joinDate);
+  d.setDate(d.getDate() + planDays(plan));
+  return d;
+}
+
+function statusOf(exp) {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const diff = Math.ceil((exp - now) / 86400000);
+  if (diff < 0) return { label:'Expired', cls:'badge-exp', diff };
+  if (diff <= 3) return { label:`⚠ ${diff}d left`, cls:'badge-warn', diff };
+  return { label:`${diff}d left`, cls:'badge-ok', diff };
+}
+
+function addMember() {
+  const name = document.getElementById('m-name').value.trim();
+  const phone = document.getElementById('m-phone').value.trim();
+  const plan = document.getElementById('m-plan').value;
+  const date = document.getElementById('m-date').value;
+  const email = document.getElementById('m-email').value.trim();
+  if (!name || !phone || !date) { alert('Please fill Name, Phone and Join Date.'); return; }
+  members.push({ id: Date.now(), name, phone, plan, date, email });
+  saveMem();
+  renderMembers();
+  document.getElementById('m-name').value = '';
+  document.getElementById('m-phone').value = '';
+  document.getElementById('m-email').value = '';
+  switchTab('members');
+}
+
+function removeMember(id) {
+  members = members.filter(m => m.id !== id);
+  saveMem();
+  renderMembers();
+}
+
+function renderMembers() {
+  const tbody = document.getElementById('members-tbody');
+  if (!members.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--silver);font-style:italic;">No members added yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = members.map(m => {
+    const exp = expiry(m.date, m.plan);
+    const s = statusOf(exp);
+    return `<tr>
+      <td>${m.name}</td>
+      <td><a href="tel:${m.phone}" style="color:var(--gold);text-decoration:none;">${m.phone}</a></td>
+      <td>${m.plan}</td>
+      <td>${exp.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</td>
+      <td><span class="${s.cls}">${s.label}</span></td>
+      <td>
+        ${s.diff <= 3 ? `<a href="https://wa.me/${m.phone.replace(/\D/g,'').replace(/^0/,'91')}?text=Hi%20${encodeURIComponent(m.name)}%2C%20your%20Roar360%20membership%20expires%20in%20${s.diff <= 0 ? 'now' : s.diff + '%20days'}!%20Renew%20now%20to%20keep%20your%20streak.%20Call%3A%2073374%2041740" target="_blank" style="background:rgba(37,211,102,0.15);color:#25d366;padding:4px 10px;font-size:.65rem;letter-spacing:1px;text-decoration:none;text-transform:uppercase;">WhatsApp</a>` : ''}
+        <button onclick="removeMember(${m.id})" style="background:rgba(255,45,85,0.1);color:#ff2d55;border:none;padding:4px 10px;font-size:.65rem;letter-spacing:1px;cursor:pointer;text-transform:uppercase;margin-left:4px;">Remove</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderAlerts() {
+  const container = document.getElementById('alerts-container');
+  const alertMembers = members.filter(m => statusOf(expiry(m.date, m.plan)).diff <= 3);
+  if (!alertMembers.length) {
+    container.innerHTML = '<div class="no-alerts">✅ All memberships are active — no alerts at this time.</div>';
+    return;
+  }
+  container.innerHTML = alertMembers.map(m => {
+    const exp = expiry(m.date, m.plan);
+    const s = statusOf(exp);
+    const waMsg = `Hi%20${encodeURIComponent(m.name)}%2C%20your%20Roar360%20Fitness%20Club%20membership%20expires%20in%20${s.diff <= 0 ? 'NOW' : s.diff + '%20days'}!%20Please%20renew%20to%20continue%20your%20fitness%20journey.%20Contact%20us%3A%2073374%2041740`;
+    return `<div class="alert-banner">
+      <span class="alert-icon">${s.diff < 0 ? '🔴' : '🟡'}</span>
+      <div>
+        <strong style="color:var(--platinum);">${m.name}</strong>
+        <span style="color:var(--silver);font-size:.8rem;margin-left:8px;">${m.phone} · ${m.plan}</span><br>
+        <span style="font-size:.8rem;color:var(--silver);">Expires: ${exp.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})} · <span class="${s.cls}">${s.label}</span></span>
+      </div>
+      <a href="https://wa.me/${m.phone.replace(/\D/g,'').replace(/^0/,'91')}?text=${waMsg}" target="_blank" class="notify-btn">Notify via WhatsApp</a>
+    </div>`;
+  }).join('');
+
+  // Owner alert
+  const ownerMsg = encodeURIComponent(`Roar360 Alert: ${alertMembers.length} membership(s) expiring soon: ${alertMembers.map(m => m.name).join(', ')}`);
+  container.innerHTML += `<div style="margin-top:20px;padding:16px;background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.2);display:flex;align-items:center;justify-content:space-between;">
+    <span style="font-size:.85rem;color:var(--silver);">📲 Send all ${alertMembers.length} alert(s) summary to owner</span>
+    <a href="https://wa.me/917337441740?text=${ownerMsg}" target="_blank" style="background:linear-gradient(135deg,var(--gold),#8b6914);color:var(--deep);padding:10px 20px;font-size:.75rem;letter-spacing:2px;text-transform:uppercase;text-decoration:none;font-weight:700;">Alert Owner</a>
+  </div>`;
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.rtab').forEach((t,i) => {
+    const tabs = ['add','members','alerts'];
+    t.classList.toggle('active', tabs[i] === tab);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  if (tab === 'members') renderMembers();
+  if (tab === 'alerts') renderAlerts();
+}
+
+// Set today's date as default
+document.getElementById('m-date').valueAsDate = new Date();
+
+// Auto-check alerts on load
+renderMembers();
+
+// ==================== PRELOADER ====================
+(function() {
+  const pl = document.createElement('div');
+  pl.id = 'preloader';
+  pl.innerHTML = `<div style="text-align:center">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:5rem;background:linear-gradient(135deg,#c9a84c,#f0d080);-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:preloaderPulse 1s infinite alternate;letter-spacing:8px;">ROAR360</div>
+    <div style="font-size:.7rem;letter-spacing:6px;color:#c9a84c;margin-top:10px;text-transform:uppercase;">Forging Your Legend...</div>
+    <div style="width:200px;height:2px;background:rgba(201,168,76,0.2);margin:20px auto 0;overflow:hidden;"><div id="pl-bar" style="height:100%;width:0;background:linear-gradient(90deg,#8b0000,#c9a84c);transition:width .1s;"></div></div>
+  </div>`;
+  Object.assign(pl.style, { position:'fixed',inset:'0',background:'#0a0305',display:'flex',alignItems:'center',justifyContent:'center',zIndex:'99999',transition:'opacity .6s' });
+  document.head.insertAdjacentHTML('beforeend','<style>@keyframes preloaderPulse{from{opacity:.6}to{opacity:1}}</style>');
+  document.body.prepend(pl);
+  let progress = 0;
+  const bar = pl.querySelector('#pl-bar');
+  const t = setInterval(() => { progress = Math.min(progress + Math.random() * 15, 100); bar.style.width = progress + '%'; }, 100);
+  window.addEventListener('load', () => {
+    clearInterval(t); bar.style.width = '100%';
+    setTimeout(() => { pl.style.opacity = '0'; setTimeout(() => pl.remove(), 600); }, 300);
+  });
+})();
+</script>
+</body>
+</html>
